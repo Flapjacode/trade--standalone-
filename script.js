@@ -7,6 +7,84 @@ let cachedPairs = null;
 let cachedSignals = null;
 let lastSignalFetch = 0;
 
+// Optional EmailJS configuration: set `enabled: true` and fill values to send real emails
+const EMAILJS_CONFIG = {
+  enabled: false,
+  serviceId: 'YOUR_SERVICE_ID',
+  templateId: 'YOUR_TEMPLATE_ID',
+  publicKey: 'YOUR_PUBLIC_KEY'
+};
+
+// Runtime EmailJS config keys in localStorage:
+// 'emailjs_serviceId', 'emailjs_templateId', 'emailjs_publicKey'
+function loadRuntimeEmailJSConfig() {
+  const serviceId = localStorage.getItem('emailjs_serviceId') || '';
+  const templateId = localStorage.getItem('emailjs_templateId') || '';
+  const publicKey = localStorage.getItem('emailjs_publicKey') || '';
+  return { serviceId, templateId, publicKey };
+}
+
+function saveRuntimeEmailJSConfig({ serviceId, templateId, publicKey }) {
+  if (serviceId !== undefined) localStorage.setItem('emailjs_serviceId', serviceId);
+  if (templateId !== undefined) localStorage.setItem('emailjs_templateId', templateId);
+  if (publicKey !== undefined) localStorage.setItem('emailjs_publicKey', publicKey);
+}
+
+// EmailJS helper: dynamically loads EmailJS and sends verification emails when configured.
+function loadEmailJSScript() {
+  return new Promise((resolve, reject) => {
+    if (window.emailjs) return resolve();
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+    s.onload = () => {
+      // Initialize with runtime publicKey if present, otherwise fallback to config
+      const runtime = loadRuntimeEmailJSConfig();
+      const pk = runtime.publicKey || EMAILJS_CONFIG.publicKey;
+      if (pk && window.emailjs && typeof emailjs.init === 'function') {
+        try { emailjs.init(pk); } catch (e) { /* ignore */ }
+      }
+      resolve();
+    };
+    s.onerror = (e) => reject(e);
+    document.head.appendChild(s);
+  });
+}
+
+function sendVerificationEmail(email, code, username) {
+  return new Promise(async (resolve, reject) => {
+    // Respect runtime toggle
+    if (!window.EMAIL_SEND_ENABLED) return reject(new Error('Runtime email sending disabled'));
+
+    // Use runtime-saved config if available, otherwise fallback to static EMAILJS_CONFIG
+    const runtime = loadRuntimeEmailJSConfig();
+    const serviceId = runtime.serviceId || EMAILJS_CONFIG.serviceId;
+    const templateId = runtime.templateId || EMAILJS_CONFIG.templateId;
+    const publicKey = runtime.publicKey || EMAILJS_CONFIG.publicKey;
+
+    if (!serviceId || !templateId || !publicKey) {
+      return reject(new Error('EmailJS configuration missing'));
+    }
+
+    try {
+      await loadEmailJSScript();
+      // Re-init with the chosen publicKey
+      try { if (window.emailjs && typeof emailjs.init === 'function') emailjs.init(publicKey); } catch (e) { /* ignore */ }
+
+      const params = {
+        to_email: email,
+        user_name: username,
+        verification_code: code
+      };
+      if (!window.emailjs || !emailjs.send) return reject(new Error('EmailJS not available'));
+      emailjs.send(serviceId, templateId, params)
+        .then(res => resolve(res))
+        .catch(err => reject(err));
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
 // Crypto pairs configuration
 const TOP_PAIRS = [
   { symbol: 'BTCUSDT', name: 'Bitcoin', id: 'bitcoin', tv: 'BITSTAMP:BTCUSD' },
@@ -48,6 +126,51 @@ function initializeApp() {
   document.getElementById('logoutBtn').addEventListener('click', handleLogout);
   document.getElementById('dashboardLogout').addEventListener('click', handleLogout);
   document.getElementById('pairSelector').addEventListener('change', loadTradingViewChart);
+
+  // Initialize runtime email send flag (persisted in localStorage)
+  window.EMAIL_SEND_ENABLED = (localStorage.getItem('emailSendEnabled') === 'true') || EMAILJS_CONFIG.enabled;
+  const emailToggle = document.getElementById('emailSendToggle');
+  if (emailToggle) {
+    emailToggle.checked = !!window.EMAIL_SEND_ENABLED;
+    emailToggle.addEventListener('change', (ev) => toggleEmailSend(ev.target.checked));
+  }
+  // Populate runtime EmailJS config inputs (if present)
+  const runtimeCfg = loadRuntimeEmailJSConfig();
+  const svc = document.getElementById('emailjsServiceId');
+  const tmpl = document.getElementById('emailjsTemplateId');
+  const pk = document.getElementById('emailjsPublicKey');
+  const saveBtn = document.getElementById('emailjsSaveBtn');
+  if (svc) svc.value = runtimeCfg.serviceId || '';
+  if (tmpl) tmpl.value = runtimeCfg.templateId || '';
+  if (pk) pk.value = runtimeCfg.publicKey || '';
+  if (saveBtn) {
+    saveBtn.addEventListener('click', () => {
+      saveRuntimeEmailJSConfig({
+        serviceId: svc ? svc.value.trim() : '',
+        templateId: tmpl ? tmpl.value.trim() : '',
+        publicKey: pk ? pk.value.trim() : ''
+      });
+      alert('EmailJS settings saved to localStorage. Toggle "Send real emails" to enable.');
+      updateEmailStatusUI();
+    });
+  }
+  updateEmailStatusUI();
+}
+
+function toggleEmailSend(enabled) {
+  window.EMAIL_SEND_ENABLED = !!enabled;
+  localStorage.setItem('emailSendEnabled', window.EMAIL_SEND_ENABLED ? 'true' : 'false');
+  updateEmailStatusUI();
+}
+
+function updateEmailStatusUI() {
+  const note = document.getElementById('emailSendNote');
+  if (!note) return;
+  if (window.EMAIL_SEND_ENABLED) {
+    note.innerHTML = 'Email sending is <strong>ENABLED</strong>. Verification emails will be sent when EmailJS is configured.';
+  } else {
+    note.innerHTML = 'Email sending is <strong>DISABLED</strong>. Codes are shown in alert/console for testing. See <a href="EMAIL_SETUP.md">EMAIL_SETUP.md</a> to enable.';
+  }
 }
 
 // ===== AUTH (CLIENT-SIDE ONLY) =====
@@ -66,16 +189,30 @@ function handleLogin(e) {
     return;
   }
 
-  // Store user locally (no backend)
-  currentUser = {
-    id: 'user_' + Math.random().toString(36).substr(2, 9),
-    username: username,
-    loginTime: new Date().toISOString()
-  };
+  // Try to find an existing verified member by username
+  const members = JSON.parse(localStorage.getItem('communityMembers') || '[]');
+  const member = members.find(m => m.username === username);
+
+  if (member) {
+    currentUser = {
+      id: member.id,
+      username: member.username,
+      email: member.email,
+      verified: true,
+      loginTime: new Date().toISOString()
+    };
+  } else {
+    // Create a transient user (not verified) — encourage registration for verification
+    currentUser = {
+      id: 'user_' + Math.random().toString(36).substr(2, 9),
+      username: username,
+      loginTime: new Date().toISOString()
+    };
+  }
 
   localStorage.setItem('tradingAppUser', JSON.stringify(currentUser));
-  
-  // Store ideas for this user
+
+  // Ensure ideas store exists (shared across users)
   if (!localStorage.getItem('tradingAppIdeas')) {
     localStorage.setItem('tradingAppIdeas', JSON.stringify([]));
   }
@@ -131,9 +268,12 @@ function handleRegister(e) {
   document.getElementById('verificationCode').value = '';
   document.getElementById('verificationError').textContent = '';
 
-  // Try to send email (will fail on GitHub Pages, but we'll show the code in console)
-  console.log('Verification code for', email + ':', verificationCode);
-  alert('Verification code sent to ' + email + '\\n\\nFor testing: ' + verificationCode);
+    // Try to send email via EmailJS if configured, otherwise fallback to console+alert
+    sendVerificationEmail(pendingUser.email, pendingUser.verificationCode, pendingUser.username)
+      .catch(() => {
+        console.log('Verification code for', email + ':', verificationCode);
+        alert('Verification code sent to ' + email + '\n\nFor testing: ' + verificationCode);
+      });
 }
 
 function handleLogout() {
@@ -185,7 +325,10 @@ function verifyEmailCode() {
   };
 
   localStorage.setItem('tradingAppUser', JSON.stringify(currentUser));
-  localStorage.setItem('tradingAppIdeas', JSON.stringify([]));
+  // Ensure shared ideas store exists (do not wipe existing ideas)
+  if (!localStorage.getItem('tradingAppIdeas')) {
+    localStorage.setItem('tradingAppIdeas', JSON.stringify([]));
+  }
   
   // Store all community members for reference
   const allMembers = JSON.parse(localStorage.getItem('communityMembers')) || [];

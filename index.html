@@ -89,6 +89,33 @@
               <label>Email</label>
               <input type="email" id="regEmail" required placeholder="Enter your email">
             </div>
+            <div class="form-group email-send-status">
+              <label>&nbsp;</label>
+              <div class="email-send-row">
+                <input type="checkbox" id="emailSendToggle">
+                <label for="emailSendToggle" class="email-send-label">Send real emails (EmailJS)</label>
+              </div>
+              <div id="emailSendNote" class="small-note">Email sending is disabled. See <a href="EMAIL_SETUP.md">EMAIL_SETUP.md</a> to enable.</div>
+              <div class="email-config" id="emailConfig">
+                <h4 class="small-title">EmailJS Settings (optional)</h4>
+                <div class="form-group email-config-row">
+                  <label for="emailjsServiceId">Service ID</label>
+                  <input type="text" id="emailjsServiceId" class="email-config-input" placeholder="e.g., service_xxx">
+                </div>
+                <div class="form-group email-config-row">
+                  <label for="emailjsTemplateId">Template ID</label>
+                  <input type="text" id="emailjsTemplateId" class="email-config-input" placeholder="e.g., template_xxx">
+                </div>
+                <div class="form-group email-config-row">
+                  <label for="emailjsPublicKey">Public Key</label>
+                  <input type="text" id="emailjsPublicKey" class="email-config-input" placeholder="e.g., public_xxx">
+                </div>
+                <div class="form-group">
+                  <label>&nbsp;</label>
+                  <button type="button" id="emailjsSaveBtn" class="btn-ghost">Save EmailJS Settings</button>
+                </div>
+              </div>
+            </div>
             <div class="form-group">
               <label>Password</label>
               <input type="password" id="regPassword" required placeholder="Enter password">
