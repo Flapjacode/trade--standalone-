@@ -357,16 +357,10 @@ function loadTradingViewChart() {
 // ===== JUPITER PLUGIN =====
 
 function initializeJupiter() {
-  if (typeof window !== 'undefined' && window.Jupiter) {
-    try {
-      window.Jupiter.init({
-        displayMode: 'integrated',
-        integratedTargetId: 'target-container'
-      });
-    } catch (e) {
-      console.error('Jupiter init failed:', e);
-    }
-  }
+ window.Jupiter.init({
+  displayMode: "integrated",
+  integratedTargetId: "target-container",
+});
 }
 
 // ===== SIGNALS =====

@@ -24,15 +24,15 @@
         </nav>
       </div>
       <div class="nav-right">
-        <span class="username" id="navUsername" style="display: none;"></span>
-        <button class="btn-ghost" id="logoutBtn" style="display: none;">Logout</button>
+        <span class="username hidden" id="navUsername"></span>
+        <button class="btn-ghost hidden" id="logoutBtn">Logout</button>
         <span id="authPlaceholder">Loading...</span>
       </div>
     </div>
   </header>
 
   <!-- Email Verification Modal -->
-  <div id="emailVerificationModal" class="modal" style="display: none;">
+  <div id="emailVerificationModal" class="modal hidden">
     <div class="modal-content">
       <div class="modal-header">
         <h2>Verify Your Email</h2>
@@ -40,21 +40,17 @@
       </div>
       <div class="modal-body">
         <p>We've sent a confirmation code to <strong id="verifyEmailAddress"></strong></p>
-        <p style="color: #888; font-size: 14px; margin-top: 12px;">Check your email and enter the code below to verify your account.</p>
-        
-        <div class="form-group" style="margin-top: 20px;">
-          <label>Verification Code</label>
-          <input type="text" id="verificationCode" placeholder="Enter 6-digit code" maxlength="6" style="text-align: center; font-size: 20px; letter-spacing: 4px;">
+        <p class="verify-instructions">Check your email and enter the code below to verify your account.</p>
+        <div class="form-group verify-code-group">
+          <label for="verificationCode">Verification Code</label>
+          <input type="text" id="verificationCode" class="verify-code-input" placeholder="Enter 6-digit code" maxlength="6">
         </div>
-        
-        <p style="color: #888; font-size: 12px; margin-top: 12px;">
-          Didn't receive an email? <a href="#" onclick="resendVerificationCode(event)" style="color: #4a9eff; text-decoration: none;">Resend code</a>
+        <p class="verify-resend">
+          Didn't receive an email? <a href="#" class="verify-resend-link" onclick="resendVerificationCode(event)">Resend code</a>
         </p>
-        
-        <button onclick="verifyEmailCode()" class="btn-primary" style="width: 100%; margin-top: 16px;">Verify & Login</button>
-        <button onclick="closeEmailModal()" class="btn-ghost" style="width: 100%; margin-top: 8px;">Cancel</button>
-        
-        <div id="verificationError" class="error-message" style="margin-top: 12px;"></div>
+        <button type="button" onclick="verifyEmailCode()" class="btn-primary verify-btn">Verify & Login</button>
+        <button type="button" onclick="closeEmailModal()" class="btn-ghost cancel-btn">Cancel</button>
+        <div id="verificationError" class="error-message verify-error"></div>
       </div>
     </div>
   </div>
@@ -110,30 +106,28 @@
   </div>
 
   <!-- Main Dashboard (initially hidden) -->
-  <main id="dashboardContainer" class="app-container" style="display: none;">
+  <main id="dashboardContainer" class="app-container hidden">
     <!-- Charts Section -->
     <section id="charts" class="section">
       <h2 class="section-title">Charts</h2>
       <div class="chart-section">
         <div class="chart-main">
-          <div style="display: flex; gap: 12px; margin-bottom: 12px; align-items: center;">
-            <label style="color: #aaa;">Pair:</label>
-            <select id="pairSelector" style="padding: 6px 8px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 4px;">
+          <div class="pair-select-row">
+            <label class="pair-label">Pair:</label>
+            <select id="pairSelector" class="pair-selector" title="Select trading pair">
               <option>COINBASE:SOLUSD</option>
               <option>BITSTAMP:BTCUSD</option>
               <option>COINBASE:ETHUSD</option>
               <option>BINANCE:XRPUSDT.P</option>
             </select>
           </div>
-          <div class="tradingview-widget-container" style="height: 520px; width: 100%; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.03);">
-            <div class="tradingview-widget-container__widget" style="height: 100%; width: 100%;"></div>
+          <div class="tradingview-widget-container tradingview-custom">
+            <div class="tradingview-widget-container__widget tradingview-widget-full"></div>
           </div>
         </div>
         <aside class="jupiter-container">
-          <h4 style="margin-bottom: 12px; font-size: 14px; color: #aaa;">Jupiter Swap</h4>
-         <!-- Prepare a div in your <body> for Plugin to render -->
-<!-- Adjust the width and height to suit your requirements -->
-  <div id="target-container" style="width: 400px; height: 568px;"></div>
+          <h4 class="jupiter-title">Jupiter Swap</h4>
+          <div id="target-container" class="jupiter-widget"></div>
   <script>
     window.Jupiter.init({
       displayMode: "integrated",
@@ -148,7 +142,7 @@
     <section id="signals" class="section">
       <h2 class="section-title">Top Signals</h2>
       <div id="signalsList" class="signals-list">
-        <p style="color: #888;">Loading signals...</p>
+        <p class="loading-signals">Loading signals...</p>
       </div>
     </section>
 
@@ -167,14 +161,14 @@
             <label>Description</label>
             <textarea id="ideaDescription" required placeholder="Describe your trading idea..."></textarea>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="idea-grid-row">
             <div class="form-group">
         <input type="text" id="ideaPair" value="BTC/USDT" placeholder="e.g., BTC/USDT">
       </div>
       <div class="form-group">
        </script>     <div class="form-group">
               <label>Type</label>
-              <select id="ideaType">
+              <select id="ideaType" title="Select idea type">
                 <option value="long">Long</option>
                 <option value="short">Short</option>
               </select>
@@ -186,16 +180,16 @@
       </div>
 
       <div id="ideasFeed" class="ideas-feed">
-        <p style="color: #888;">Loading ideas...</p>
+        <p class="loading-ideas">Loading ideas...</p>
       </div>
     </section>
 
     <!-- Account Section -->
     <section id="account" class="section">
       <h2 class="section-title">Account</h2>
-      <div style="padding: 16px; background: rgba(255,255,255,0.02); border-radius: 8px;">
+      <div class="dashboard-account-box">
         <p>Signed in as <strong id="accountUsername"></strong></p>
-        <button id="dashboardLogout" class="btn-primary" style="margin-top: 12px;">Logout</button>
+        <button id="dashboardLogout" class="btn-primary dashboard-logout-btn">Logout</button>
       </div>
     </section>
   </main>
