@@ -24,15 +24,15 @@
         </nav>
       </div>
       <div class="nav-right">
-        <span class="username hidden" id="navUsername"></span>
-        <button class="btn-ghost hidden" id="logoutBtn">Logout</button>
+        <span class="username" id="navUsername" style="display: none;"></span>
+        <button class="btn-ghost" id="logoutBtn" style="display: none;">Logout</button>
         <span id="authPlaceholder">Loading...</span>
       </div>
     </div>
   </header>
 
   <!-- Email Verification Modal -->
-  <div id="emailVerificationModal" class="modal hidden">
+  <div id="emailVerificationModal" class="modal" style="display: none;">
     <div class="modal-content">
       <div class="modal-header">
         <h2>Verify Your Email</h2>
@@ -133,7 +133,7 @@
   </div>
 
   <!-- Main Dashboard (initially hidden) -->
-  <main id="dashboardContainer" class="app-container hidden">
+  <main id="dashboardContainer" class="app-container" style="display: none;">
     <!-- Charts Section -->
     <section id="charts" class="section">
       <h2 class="section-title">Charts</h2>
