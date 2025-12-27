@@ -1,253 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
   <title>Crypto Trading Platform</title>
-  <link rel="stylesheet" href="style.css">
-  <!-- TradingView Widget -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- TradingView -->
   <script src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js"></script>
-  <!-- Jupiter Plugin -->
+
+  <!-- Jupiter -->
   <script src="https://plugin.jup.ag/plugin-v1.js"></script>
 </head>
 <body>
-  <!-- Navigation Bar -->
-  <header class="navbar">
-    <div class="nav-inner">
-      <div class="nav-left">
-        <a class="brand" href="#charts">CryptoTrade</a>
-        <nav class="nav-links">
-          <a href="#charts">Charts</a>
-          <a href="#signals">Signals</a>
-          <a href="#ideas">Ideas</a>
-          <a href="#account">Account</a>
-        </nav>
-      </div>
-      <div class="nav-right">
-        <span class="username" id="navUsername" style="display: none;"></span>
-        <button class="btn-ghost" id="logoutBtn" style="display: none;">Logout</button>
-        <span id="authPlaceholder">Loading...</span>
-      </div>
-    </div>
-  </header>
 
-  <!-- Email Verification Modal -->
-  <div id="emailVerificationModal" class="modal" style="display: none;">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>Verify Your Email</h2>
-        <span class="close" onclick="closeEmailModal()">&times;</span>
-      </div>
-      <div class="modal-body">
-        <p>We've sent a confirmation code to <strong id="verifyEmailAddress"></strong></p>
-        <p class="verify-instructions">Check your email and enter the code below to verify your account.</p>
-        <div class="form-group verify-code-group">
-          <label for="verificationCode">Verification Code</label>
-          <input type="text" id="verificationCode" class="verify-code-input" placeholder="Enter 6-digit code" maxlength="6">
-        </div>
-        <p class="verify-resend">
-          Didn't receive an email? <a href="#" class="verify-resend-link" onclick="resendVerificationCode(event)">Resend code</a>
-        </p>
-        <button type="button" onclick="verifyEmailCode()" class="btn-primary verify-btn">Verify & Login</button>
-        <button type="button" onclick="closeEmailModal()" class="btn-ghost cancel-btn">Cancel</button>
-        <div id="verificationError" class="error-message verify-error"></div>
-      </div>
+<header class="navbar">
+  <div class="nav-inner">
+    <div class="nav-left">
+      <span class="brand">CryptoTrade</span>
+      <nav class="nav-links">
+        <a href="#charts">Charts</a>
+        <a href="#signals">Signals</a>
+        <a href="#ideas">Ideas</a>
+        <a href="#account">Account</a>
+      </nav>
+    </div>
+    <div class="nav-right">
+      <span id="navUsername" class="username hidden"></span>
+      <button id="logoutBtn" class="btn-ghost hidden">Logout</button>
+      <span id="authPlaceholder">Not logged in</span>
     </div>
   </div>
+</header>
 
-  <!-- Auth Forms (initially shown) -->
-  <div id="authContainer" class="auth-container">
-    <div class="auth-box">
-      <h1>Crypto Trading Platform</h1>
-      <p>Welcome to the trading platform. Create an account or log in to start trading.</p>
-      
-      <div class="auth-forms">
-        <div class="form-section">
-          <h3>Login</h3>
-          <form id="loginForm">
-            <div class="form-group">
-              <label>Username</label>
-              <input type="text" id="loginUsername" required placeholder="Enter username">
-            </div>
-            <div class="form-group">
-              <label>Password</label>
-              <input type="password" id="loginPassword" required placeholder="Enter password">
-            </div>
-            <button type="submit" class="btn-primary">Login</button>
-            <div id="loginError" class="error-message"></div>
-          </form>
-        </div>
+<!-- AUTH -->
+<div id="authContainer" class="auth-container">
+  <div class="auth-box">
 
-        <div class="form-section">
-          <h3>Register</h3>
-          <form id="registerForm">
-            <div class="form-group">
-              <label>Username</label>
-              <input type="text" id="regUsername" required placeholder="Choose username">
-            </div>
-            <div class="form-group">
-              <label>Email</label>
-              <input type="email" id="regEmail" required placeholder="Enter your email">
-            </div>
-            <div class="form-group email-send-status">
-              <label>&nbsp;</label>
-              <div class="email-send-row">
-                <input type="checkbox" id="emailSendToggle">
-                <label for="emailSendToggle" class="email-send-label">Send real emails (EmailJS)</label>
-              </div>
-              <div id="emailSendNote" class="small-note">Email sending is disabled.</div>
-              <div class="email-config" id="emailConfig">
-                <h4 class="small-title">EmailJS Settings (optional)</h4>
-                <div class="form-group email-config-row">
-                  <label for="emailjsServiceId">Service ID</label>
-                  <input type="text" id="emailjsServiceId" class="email-config-input" placeholder="e.g., service_xxx">
-                </div>
-                <div class="form-group email-config-row">
-                  <label for="emailjsTemplateId">Template ID</label>
-                  <input type="text" id="emailjsTemplateId" class="email-config-input" placeholder="e.g., template_xxx">
-                </div>
-                <div class="form-group email-config-row">
-                  <label for="emailjsPublicKey">Public Key</label>
-                  <input type="text" id="emailjsPublicKey" class="email-config-input" placeholder="e.g., public_xxx">
-                </div>
-                <div class="form-group">
-                  <label>&nbsp;</label>
-                  <button type="button" id="emailjsSaveBtn" class="btn-ghost">Save EmailJS Settings</button>
-                </div>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Password</label>
-              <input type="password" id="regPassword" required placeholder="Enter password">
-            </div>
-            <div class="form-group">
-              <label>Confirm Password</label>
-              <input type="password" id="regConfirmPassword" required placeholder="Confirm password">
-            </div>
-            <button type="submit" class="btn-primary">Register</button>
-            <div id="registerError" class="error-message"></div>
-          </form>
-        </div>
-      </div>
+    <h1>Crypto Trading Platform</h1>
+    <p>Create an account or log in.</p>
+
+    <div class="auth-forms">
+
+      <!-- LOGIN -->
+      <form id="loginForm" class="auth-form">
+        <h3>Login</h3>
+        <input id="loginUsername" placeholder="Username" required />
+        <input id="loginPassword" type="password" placeholder="Password" required />
+        <button class="btn-primary">Login</button>
+        <div id="loginError" class="error"></div>
+      </form>
+
+      <!-- REGISTER -->
+      <form id="registerForm" class="auth-form">
+        <h3>Register</h3>
+        <input id="regUsername" placeholder="Username" required />
+        <input id="regEmail" type="email" placeholder="Email" required />
+        <input id="regPassword" type="password" placeholder="Password" required />
+        <input id="regConfirmPassword" type="password" placeholder="Confirm Password" required />
+        <button class="btn-primary">Register</button>
+        <div id="registerError" class="error"></div>
+      </form>
+
     </div>
   </div>
+</div>
 
-  <!-- Main Dashboard (initially hidden) -->
-  <main id="dashboardContainer" class="app-container" style="display: none;">
-    <!-- Charts Section -->
-    <section id="charts" class="section">
-      <h2 class="section-title">Charts</h2>
-      <div class="chart-section">
-        <div class="chart-main">
-          <div class="pair-select-row">
-            <label class="pair-label">Pair:</label>
-            <select id="pairSelector" class="pair-selector" title="Select trading pair">
-              <option>COINBASE:SOLUSD</option>
-              <option>BITSTAMP:BTCUSD</option>
-              <option>COINBASE:ETHUSD</option>
-              <option>BINANCE:XRPUSDT.P</option>
-            </select>
-          </div>
-          <div class="tradingview-widget-container tradingview-custom">
-            <div class="tradingview-widget-container__widget tradingview-widget-full"></div>
-          </div>
-        </div>
-        <aside class="jupiter-container">
-          <h4 class="jupiter-title">Jupiter Swap</h4>
-          <div id="target-container" class="jupiter-widget"></div>
-        </aside>
-      </div>
-    </section>
+<!-- VERIFY MODAL -->
+<div id="verifyModal" class="modal hidden">
+  <div class="modal-content">
+    <h2>Email Verification</h2>
+    <p>Enter the 6-digit code sent to your email.</p>
+    <input id="verifyCode" maxlength="6" placeholder="123456" />
+    <button id="verifyBtn" class="btn-primary">Verify</button>
+    <div id="verifyError" class="error"></div>
+  </div>
+</div>
 
-    <!-- RGW Multi-Timeframe Signals Section -->
-    <section id="signals" class="section">
-      <div class="signals-header">
-        <h2 class="section-title">RGW Multi-Timeframe Signals</h2>
-        <div class="signal-controls">
-          <select id="signalPairSelector" class="signal-pair-selector">
-            <option value="">Select Asset...</option>
-          </select>
-          <button id="analyzeBtn" class="btn-primary analyze-btn">Analyze</button>
-          <button id="refreshSignalsBtn" class="btn-ghost refresh-btn">↻ Refresh</button>
-        </div>
-      </div>
+<!-- DASHBOARD -->
+<main id="dashboardContainer" class="app hidden">
+  <section id="charts">
+    <h2>Charts</h2>
+    <div class="chart-box">TradingView goes here</div>
+  </section>
 
-      <!-- Overall Recommendation Card -->
-      <div id="overallRecommendation" class="overall-recommendation">
-        <div class="recommendation-header">
-          <h3>Overall Recommendation</h3>
-          <span id="overallDirection" class="overall-direction"></span>
-        </div>
-        <div class="recommendation-stats">
-          <div class="stat-item">
-            <span class="stat-label">Confidence</span>
-            <span id="overallConfidence" class="stat-value">--</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Long Strength</span>
-            <span id="longStrength" class="stat-value stat-long">--</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Short Strength</span>
-            <span id="shortStrength" class="stat-value stat-short">--</span>
-          </div>
-        </div>
-      </div>
+  <section id="signals">
+    <h2>Signals</h2>
+    <p>Coming soon…</p>
+  </section>
 
-      <!-- Timeframe Signals Grid -->
-      <div id="timeframeSignals" class="timeframe-signals-grid">
-        <p class="loading-signals">Select an asset and click Analyze to see multi-timeframe signals</p>
-      </div>
-    </section>
+  <section id="ideas">
+    <h2>Ideas</h2>
+    <p>Coming soon…</p>
+  </section>
 
-    <!-- Ideas Section -->
-    <section id="ideas" class="section">
-      <h2 class="section-title">Trading Ideas</h2>
-      
-      <div class="idea-form">
-        <h3>Post a Trading Idea</h3>
-        <form id="ideaForm">
-          <div class="form-group">
-            <label>Title</label>
-            <input type="text" id="ideaTitle" required placeholder="e.g., Bitcoin bullish breakout">
-          </div>
-          <div class="form-group">
-            <label>Description</label>
-            <textarea id="ideaDescription" required placeholder="Describe your trading idea..."></textarea>
-          </div>
-          <div class="idea-grid-row">
-            <div class="form-group">
-              <label>Pair</label>
-              <input type="text" id="ideaPair" value="BTC/USDT" placeholder="e.g., BTC/USDT">
-            </div>
-            <div class="form-group">
-              <label>Type</label>
-              <select id="ideaType" title="Select idea type">
-                <option value="long">Long</option>
-                <option value="short">Short</option>
-              </select>
-            </div>
-          </div>
-          <button type="submit" class="btn-primary">Post Idea</button>
-          <div id="ideaError" class="error-message"></div>
-        </form>
-      </div>
+  <section id="account">
+    <h2>Account</h2>
+    <p>Signed in as <strong id="accountUsername"></strong></p>
+  </section>
+</main>
 
-      <div id="ideasFeed" class="ideas-feed">
-        <p class="loading-ideas">Loading ideas...</p>
-      </div>
-    </section>
-
-    <!-- Account Section -->
-    <section id="account" class="section">
-      <h2 class="section-title">Account</h2>
-      <div class="dashboard-account-box">
-        <p>Signed in as <strong id="accountUsername"></strong></p>
-        <button id="dashboardLogout" class="btn-primary dashboard-logout-btn">Logout</button>
-      </div>
-    </section>
-  </main>
-
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
