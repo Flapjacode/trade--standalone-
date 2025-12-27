@@ -1,222 +1,93 @@
-// ===============================
-// CONFIG
-// ===============================
-const DEV_MODE = true;
-let currentUser = null;
-let pendingUser = null;
+/* ---------- AUTH ---------- */
+const authContainer = document.getElementById('authContainer');
+const dashboard = document.getElementById('dashboardContainer');
+const navUsername = document.getElementById('navUsername');
+const authPlaceholder = document.getElementById('authPlaceholder');
+const logoutBtn = document.getElementById('logoutBtn');
+const accountUsername = document.getElementById('accountUsername');
 
-// ===============================
-// HELPERS
-// ===============================
-const $ = id => document.getElementById(id);
-const show = el => el.classList.remove('hidden');
-const hide = el => el.classList.add('hidden');
+function login(username) {
+  authContainer.classList.add('hidden');
+  dashboard.classList.remove('hidden');
 
-// ===============================
-// AUTH STORAGE (CLIENT ONLY)
-// ===============================
-const AuthStore = {
-  users() {
-    return JSON.parse(localStorage.getItem('users') || '[]');
-  },
-  save(users) {
-    localStorage.setItem('users', JSON.stringify(users));
-  },
-  login(username, password) {
-    return this.users().find(u => u.username === username && u.password === password);
-  },
-  register(user) {
-    const users = this.users();
-    users.push(user);
-    this.save(users);
-  }
-};
+  navUsername.textContent = username;
+  navUsername.classList.remove('hidden');
+  logoutBtn.classList.remove('hidden');
+  authPlaceholder.classList.add('hidden');
 
-// ===============================
-// AUTH HANDLERS
-// ===============================
-$('loginForm').onsubmit = e => {
-  e.preventDefault();
-  const user = AuthStore.login(
-    $('loginUsername').value,
-    $('loginPassword').value
-  );
-  if (!user) {
-    $('loginError').textContent = 'Invalid credentials';
-    return;
-  }
-  completeLogin(user);
-};
+  accountUsername.textContent = username;
 
-$('registerForm').onsubmit = e => {
-  e.preventDefault();
-
-  if ($('regPassword').value !== $('regConfirmPassword').value) {
-    $('registerError').textContent = 'Passwords do not match';
-    return;
-  }
-
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
-
-  pendingUser = {
-    id: 'user_' + Math.random().toString(36).slice(2),
-    username: $('regUsername').value,
-    email: $('regEmail').value,
-    password: $('regPassword').value,
-    code
-  };
-
-  if (DEV_MODE) {
-    alert(`DEV VERIFICATION CODE: ${code}`);
-  }
-
-  show($('verifyModal'));
-};
-
-$('verifyBtn').onclick = () => {
-  if ($('verifyCode').value !== pendingUser.code) {
-    $('verifyError').textContent = 'Invalid code';
-    return;
-  }
-
-  AuthStore.register(pendingUser);
-  completeLogin(pendingUser);
-};
-
-$('logoutBtn').onclick = () => {
-  localStorage.removeItem('session');
-  location.reload();
-};
-
-function completeLogin(user) {
-  currentUser = user;
-  localStorage.setItem('session', JSON.stringify(user));
-
-  $('navUsername').textContent = user.username;
-  $('accountUsername').textContent = user.username;
-
-  show($('navUsername'));
-  show($('logoutBtn'));
-  hide($('authPlaceholder'));
-
-  hide($('authContainer'));
-  show($('dashboardContainer'));
-
-  loadAvailablePairs();
-  loadTradingViewChart();
-  loadSignalPairSelector();
-  initializeJupiter();
+  initTradingView();
+  initJupiter();
 }
 
-// ===============================
-// AUTO LOGIN
-// ===============================
-const session = JSON.parse(localStorage.getItem('session'));
-if (session) completeLogin(session);
+loginForm.onsubmit = e => {
+  e.preventDefault();
+  login(loginUsername.value.trim());
+};
 
-// ===============================
-// CRYPTO CONFIG
-// ===============================
-const TOP_PAIRS = [
-  { symbol: 'BTCUSDT', name: 'Bitcoin', id: 'bitcoin', tv: 'BITSTAMP:BTCUSD' },
-  { symbol: 'ETHUSDT', name: 'Ethereum', id: 'ethereum', tv: 'COINBASE:ETHUSD' },
-  { symbol: 'SOLUSDT', name: 'Solana', id: 'solana', tv: 'COINBASE:SOLUSD' }
+registerForm.onsubmit = e => {
+  e.preventDefault();
+  login(regUsername.value.trim());
+};
+
+logoutBtn.onclick = dashboardLogout.onclick = () => location.reload();
+
+/* ---------- PAIRS ---------- */
+const pairs = [
+  'BINANCE:BTCUSDT',
+  'BINANCE:ETHUSDT',
+  'BINANCE:SOLUSDT'
 ];
 
-// ===============================
-// COINGECKO
-// ===============================
-async function fetchCryptoPrices() {
-  const ids = TOP_PAIRS.map(p => p.id).join(',');
-  const res = await fetch(
-    `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`
-  );
-  return res.json();
+pairs.forEach(p => {
+  pairSelector.innerHTML += `<option value="${p}">${p}</option>`;
+  signalPairSelector.innerHTML += `<option value="${p}">${p}</option>`;
+});
+
+/* ---------- TRADINGVIEW ---------- */
+function initTradingView(symbol = pairs[0]) {
+  document.getElementById('tvChart').innerHTML = '';
+
+  const script = document.createElement('script');
+  script.src = 'https://s3.tradingview.com/tv.js';
+  script.onload = () => {
+    new TradingView.widget({
+      container_id: 'tvChart',
+      symbol,
+      interval: '15',
+      theme: 'dark',
+      autosize: true
+    });
+  };
+  document.body.appendChild(script);
 }
 
-// ===============================
-// TRADINGVIEW
-// ===============================
-function loadAvailablePairs() {
-  const sel = $('pairSelector');
-  sel.innerHTML = '';
-  TOP_PAIRS.forEach(p => {
-    const o = document.createElement('option');
-    o.value = p.tv;
-    o.textContent = `${p.name} (${p.symbol})`;
-    sel.appendChild(o);
+pairSelector.onchange = e => initTradingView(e.target.value);
+
+/* ---------- JUPITER ---------- */
+function initJupiter() {
+  if (!window.Jupiter) return;
+
+  Jupiter.init({
+    displayMode: 'integrated',
+    integratedTargetId: 'jupiterTarget',
+    endpoint: 'https://api.mainnet-beta.solana.com'
   });
 }
 
-function loadTradingViewChart() {
-  const pair = $('pairSelector').value;
-  const container = document.querySelector('.tradingview-widget-container');
-  container.innerHTML = `
-    <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
-    <script type="text/javascript">
-      new TradingView.widget({
-        autosize: true,
-        symbol: "${pair}",
-        interval: "240",
-        theme: "dark",
-        locale: "en"
-      });
-    </script>
-  `;
-}
+/* ---------- SIGNALS ---------- */
+analyzeBtn.onclick = () => {
+  overallRecommendation.classList.remove('hidden');
 
-// ===============================
-// JUPITER
-// ===============================
-function initializeJupiter() {
-  if (window.Jupiter) {
-    window.Jupiter.init({
-      displayMode: 'integrated',
-      integratedTargetId: 'target-container'
-    });
-  }
-}
+  overallDirection.textContent = 'BULLISH';
+  overallConfidence.textContent = '72%';
+  longStrength.textContent = '8.1';
+  shortStrength.textContent = '2.3';
 
-// ===============================
-// RGW SIGNALS (SIMULATED DATA)
-// ===============================
-class RGWSignalsAnalyzer {
-  calculate(prices) {
-    const change = (prices.at(-1) - prices[0]) / prices[0];
-    return {
-      direction: change > 0 ? 'LONG' : 'SHORT',
-      confidence: Math.min(Math.abs(change) * 100, 100).toFixed(2)
-    };
-  }
-}
-
-const rgw = new RGWSignalsAnalyzer();
-
-$('analyzeBtn').onclick = async () => {
-  const prices = await fetchCryptoPrices();
-  const asset = $('signalPairSelector').value;
-  const price = prices[asset]?.usd;
-  if (!price) return alert('No data');
-
-  const fakePrices = Array.from({ length: 50 }, () => price * (1 + (Math.random() - 0.5) * 0.02));
-  const signal = rgw.calculate(fakePrices);
-
-  $('signalsOutput').innerHTML = `
-    <strong>${signal.direction}</strong><br>
-    Confidence: ${signal.confidence}%
+  timeframeSignals.innerHTML = `
+    <div class="overall-card">15m – Bullish (70%)</div>
+    <div class="overall-card">1h – Neutral (52%)</div>
+    <div class="overall-card">4h – Bearish (61%)</div>
   `;
 };
-
-// ===============================
-// SIGNAL PAIR SELECTOR
-// ===============================
-function loadSignalPairSelector() {
-  const sel = $('signalPairSelector');
-  sel.innerHTML = '<option value="">Select Asset</option>';
-  TOP_PAIRS.forEach(p => {
-    const o = document.createElement('option');
-    o.value = p.id;
-    o.textContent = p.name;
-    sel.appendChild(o);
-  });
-}

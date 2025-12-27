@@ -5,19 +5,14 @@
 
 body {
   margin: 0;
-  background: #0f1115;
-  color: #eaeaea;
+  background: #0e1117;
+  color: #e5e7eb;
 }
 
-.hidden {
-  display: none !important;
-}
-
-/* NAV */
+/* NAVBAR */
 .navbar {
-  background: #151820;
+  background: #111827;
   padding: 12px 20px;
-  border-bottom: 1px solid #222;
 }
 
 .nav-inner {
@@ -26,90 +21,107 @@ body {
   align-items: center;
 }
 
+.brand {
+  font-weight: bold;
+  font-size: 18px;
+}
+
 .nav-links a {
-  margin-right: 16px;
-  color: #ccc;
+  margin-left: 15px;
+  color: #9ca3af;
   text-decoration: none;
 }
 
-.brand {
-  font-weight: bold;
-  margin-right: 20px;
-}
-
-/* AUTH */
-.auth-container {
-  display: flex;
-  justify-content: center;
-  margin-top: 60px;
-}
-
-.auth-box {
-  background: #151820;
-  padding: 24px;
-  border-radius: 10px;
-  width: 360px;
-}
-
-.auth-form {
-  margin-bottom: 24px;
-}
-
-.auth-form input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-  background: #0f1115;
-  border: 1px solid #333;
-  color: #fff;
+.nav-links a:hover {
+  color: white;
 }
 
 .btn-primary {
-  width: 100%;
-  padding: 10px;
-  background: #4da3ff;
+  background: #2563eb;
+  color: white;
   border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
   cursor: pointer;
-  color: #000;
 }
 
 .btn-ghost {
   background: transparent;
-  border: 1px solid #444;
-  color: #ccc;
+  border: 1px solid #374151;
+  color: white;
   padding: 6px 12px;
-  cursor: pointer;
+  border-radius: 6px;
 }
 
-.error {
-  color: #ff6b6b;
-  font-size: 0.9em;
-}
-
-/* MODAL */
-.modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.7);
+.auth-container {
+  min-height: 90vh;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.modal-content {
-  background: #151820;
-  padding: 20px;
-  border-radius: 8px;
-  width: 300px;
+.auth-box {
+  background: #111827;
+  padding: 25px;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 600px;
 }
 
-/* APP */
-.app {
+.auth-forms {
+  display: flex;
+  gap: 20px;
+}
+
+.auth-form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+input, select {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #374151;
+  background: #0f172a;
+  color: white;
+}
+
+.app-container {
   padding: 20px;
 }
 
-.chart-box {
-  background: #151820;
-  padding: 20px;
+.section {
+  margin-bottom: 50px;
+}
+
+.tv-container {
+  height: 420px;
+  margin-top: 10px;
+}
+
+.jupiter-box {
+  background: #111827;
+  padding: 10px;
+  margin-top: 15px;
+  border-radius: 10px;
+}
+
+.overall-card {
+  margin-top: 15px;
+  padding: 10px;
+  background: #111827;
   border-radius: 8px;
+}
+
+.signals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.hidden {
+  display: none;
 }
