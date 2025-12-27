@@ -13,8 +13,10 @@
   <!-- Jupiter -->
   <script src="https://plugin.jup.ag/plugin-v1.js"></script>
 </head>
+
 <body>
 
+<!-- ================= NAVBAR ================= -->
 <header class="navbar">
   <div class="nav-inner">
     <div class="nav-left">
@@ -34,12 +36,11 @@
   </div>
 </header>
 
-<!-- AUTH -->
+<!-- ================= AUTH ================= -->
 <div id="authContainer" class="auth-container">
   <div class="auth-box">
-
     <h1>Crypto Trading Platform</h1>
-    <p>Create an account or log in.</p>
+    <p>Create an account or log in to continue.</p>
 
     <div class="auth-forms">
 
@@ -67,7 +68,7 @@
   </div>
 </div>
 
-<!-- VERIFY MODAL -->
+<!-- ================= EMAIL VERIFY MODAL ================= -->
 <div id="verifyModal" class="modal hidden">
   <div class="modal-content">
     <h2>Email Verification</h2>
@@ -78,27 +79,70 @@
   </div>
 </div>
 
-<!-- DASHBOARD -->
+<!-- ================= DASHBOARD ================= -->
 <main id="dashboardContainer" class="app hidden">
-  <section id="charts">
-    <h2>Charts</h2>
-    <div class="chart-box">TradingView goes here</div>
+
+  <!-- ===== CHARTS ===== -->
+  <section id="charts" class="section">
+    <h2 class="section-title">Charts</h2>
+
+    <div class="chart-section">
+      <div class="chart-main">
+
+        <div class="pair-select-row">
+          <label>Pair:</label>
+          <select id="pairSelector" class="pair-selector"></select>
+        </div>
+
+        <div class="tradingview-widget-container">
+          <div class="tradingview-widget-container__widget"></div>
+        </div>
+      </div>
+
+      <aside class="jupiter-container">
+        <h4>Jupiter Swap</h4>
+        <div id="target-container"></div>
+      </aside>
+    </div>
   </section>
 
-  <section id="signals">
-    <h2>Signals</h2>
-    <p>Coming soon…</p>
+  <!-- ===== SIGNALS ===== -->
+  <section id="signals" class="section">
+    <h2 class="section-title">RGW Multi-Timeframe Signals</h2>
+
+    <div class="signal-controls">
+      <select id="signalPairSelector"></select>
+      <button id="analyzeBtn" class="btn-primary">Analyze</button>
+    </div>
+
+    <div id="signalsOutput" class="signals-output">
+      Select an asset and click Analyze
+    </div>
   </section>
 
-  <section id="ideas">
-    <h2>Ideas</h2>
-    <p>Coming soon…</p>
+  <!-- ===== IDEAS ===== -->
+  <section id="ideas" class="section">
+    <h2 class="section-title">Trading Ideas</h2>
+
+    <form id="ideaForm" class="idea-form">
+      <input id="ideaTitle" placeholder="Idea title" required />
+      <textarea id="ideaDescription" placeholder="Describe your idea..." required></textarea>
+      <button class="btn-primary">Post Idea</button>
+      <div id="ideaError" class="error"></div>
+    </form>
+
+    <div id="ideasFeed" class="ideas-feed">
+      <p>Ideas coming soon…</p>
+    </div>
   </section>
 
-  <section id="account">
-    <h2>Account</h2>
+  <!-- ===== ACCOUNT ===== -->
+  <section id="account" class="section">
+    <h2 class="section-title">Account</h2>
     <p>Signed in as <strong id="accountUsername"></strong></p>
+    <button id="dashboardLogout" class="btn-primary">Logout</button>
   </section>
+
 </main>
 
 <script src="script.js"></script>
